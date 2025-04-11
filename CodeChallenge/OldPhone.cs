@@ -13,87 +13,124 @@ namespace CodeChallenge
             string output = "";
             string sequence = "";
 
-            // Iterar sobre cada carácter de la entrada
+            // Iterate through each character in the input string
             for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
 
-                if (char.IsDigit(c)) // Si el carácter es un número
+                if (char.IsDigit(c))
                 {
-                    // Si la secuencia tiene el mismo número, añadimos el nuevo número
-                    if (sequence.Length > 0 && sequence[0] == c)
+                    if (c == '0')
                     {
-                        sequence += c;
+                        // 0 finish the current sequence and continue with a new sequence
+                        if (sequence.Length > 0)
+                        {
+                            output += ConvertSequence(sequence) + " ";
+                            sequence = "";
+                        }
                     }
                     else
                     {
-                        // Si hay una secuencia activa, la procesamos antes de iniciar una nueva
-                        output += ConvertSequence(sequence);
-                        sequence = c.ToString(); // Iniciamos una nueva secuencia
+                        // If the current digit is the same as the previous one, its part of the sequence
+                        if (sequence.Length > 0 && sequence[0] == c)
+                        {
+                            sequence += c;
+                        }
+                        else
+                        {
+                            // A new digit means the previous sequence should be converted to a letter
+                            if (sequence.Length > 0)
+                            {
+                                output += ConvertSequence(sequence);
+                            }
+                            sequence = c.ToString();
+                        }
                     }
                 }
-                else if (c == ' ') // Si encontramos un espacio, procesamos la secuencia
+                else if (c == ' ')
                 {
-                    output += ConvertSequence(sequence);
-                    sequence = ""; // Reseteamos la secuencia
+
+                    if (sequence.Length > 0)
+                    {
+                        output += ConvertSequence(sequence);
+                        sequence = "";
+                    }
                 }
-                else if (c == '*') // Si encontramos un asterisco, borramos el último número de la secuencia
+                else if (c == '*')
                 {
                     if (sequence.Length > 0)
                     {
-                        sequence = sequence.Substring(0, sequence.Length - 1); // Borrar el último número
+                        // If the user is in the middle of a sequence, remove the last digit from that sequence
+                        sequence = sequence.Substring(0, sequence.Length - 1);
                     }
-                    else if (output.Length > 0) // Si no hay secuencia, borramos la última letra
+                    else if (output.Length > 0)
                     {
+                        // If no sequence is active, remove the last letter from the final output
                         output = output.Substring(0, output.Length - 1);
                     }
                 }
-                else if (c == '#') // Si encontramos el símbolo '#', procesamos la secuencia
+                else if (c == '#')
                 {
-                    output += ConvertSequence(sequence);
-                    break; // Terminamos el ciclo, ya que encontramos el # que marca el fin
+                    // End of input signal — finalize any remaining sequence and stop processing
+                    if (sequence.Length > 0)
+                    {
+                        output += ConvertSequence(sequence);
+                    }
+                    break;
                 }
             }
 
-            // Si llegamos al final del input y no encontramos un #, procesamos la secuencia restante
+            // If the string ended without # make sure the last sequence is processed
             if (sequence.Length > 0 && input[input.Length - 1] != '#')
             {
                 output += ConvertSequence(sequence);
             }
 
-            return output;
+            return output.Trim();
         }
-
 
         private static string ConvertSequence(string seq)
         {
             if (string.IsNullOrEmpty(seq))
                 return "";
 
-            // Validar que todos los caracteres de la secuencia sean iguales
-            if (!seq.All(c => c == seq[0]))
-                throw new Exception($"Secuencia inválida: '{seq}'");
-
-            char key = seq[0];
-            int pressCount = seq.Length;
-
-            string letters = key switch
+            // Ensure all characters in the sequence are the same 
+            char firstChar = seq[0];
+            foreach (char c in seq)
             {
-                '2' => "ABC",
-                '3' => "DEF",
-                '4' => "GHI",
-                '5' => "JKL",
-                '6' => "MNO",
-                '7' => "PQRS",
-                '8' => "TUV",
-                '9' => "WXYZ",
-                _ => throw new Exception($"Tecla inválida: '{key}'")
+                if (c != firstChar)
+                {
+                    throw new Exception($"Invalid sequence: '{seq}'");
+                }
+            }
+
+            // Map each digit to its corresponding group of letters
+            var keyToLetters = new Dictionary<char, string>
+            {
+                 { '2', "ABC" },
+                 { '3', "DEF" },
+                 { '4', "GHI" },
+                 { '5', "JKL" },
+                 { '6', "MNO" },
+                 { '7', "PQRS" },
+                 { '8', "TUV" },
+                 { '9', "WXYZ" }
             };
 
-            int index = (pressCount - 1) % letters.Length;
+            
+            char key = seq[0];
+
+            // Validate the key
+            if (!keyToLetters.ContainsKey(key))
+                throw new Exception($"Invalid key: '{key}'");
+
+            string letters = keyToLetters[key];
+
+            // Calculate the index based on the length of the sequence
+            int index = (seq.Length - 1) % letters.Length;
+
             return letters[index].ToString();
         }
 
     }
 }
-
