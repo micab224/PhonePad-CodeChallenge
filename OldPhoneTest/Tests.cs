@@ -4,7 +4,7 @@ namespace OldPhoneTest
 {
     public class Tests
     {
-        [TestCase("33#", "E")]
+        [TestCase("6444222 2#", "MICA")]
         [TestCase("227*#", "B")]
         [TestCase("4433555 555666#", "HELLO")]
         [TestCase("83377778#", "TEST")]
